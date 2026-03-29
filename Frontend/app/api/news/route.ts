@@ -1,8 +1,13 @@
 import { fetchAllFeeds } from '@/lib/news/rss-fetcher'
 import { NextResponse } from 'next/server'
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '10')
+    const skip = (page - 1) * limit
+
     const rawArticles = await fetchAllFeeds()
     // Enrich with some mocked sentiment & impact for the UI since we don't want to burn GPT limits
     // Or we just return the raw and let the UI handle it.
@@ -39,8 +44,16 @@ export async function GET() {
         affectedStocks: rand > 80 ? ['RELIANCE', 'TCS'] : rand < 20 ? ['INFY'] : [],
       }
     })
-    return NextResponse.json({ articles: enriched.slice(0, 30) }) // return top 30
+
+    const paginated = enriched.slice(skip, skip + limit)
+    const hasMore = skip + limit < enriched.length
+
+    return NextResponse.json({ 
+      articles: paginated,
+      hasMore,
+      total: enriched.length
+    })
   } catch (error) {
-    return NextResponse.json({ articles: [] })
+    return NextResponse.json({ articles: [], hasMore: false })
   }
 }

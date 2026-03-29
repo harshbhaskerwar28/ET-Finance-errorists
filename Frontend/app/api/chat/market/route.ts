@@ -24,7 +24,8 @@ const SYSTEM_PROMPT = `You are ET AI — an expert Indian stock market analyst, 
 - For charts/trends → use get_stock_history to get real OHLCV data
 - For sector analysis → use sector_analysis tool
 - For market overview → use get_market_overview for real indices
-- For ANY news, current events, dates, or missing market data → you MUST use \`web_search\` to verify reality. NEVER guess.
+- For news articles with URLs → ALWAYS use \`fetch_article_content\` to get the full story before analyzing.
+- For ANY other news, current events, dates, or missing market data → you MUST use \`web_search\` to verify reality. NEVER guess.
 - Multiple tools in sequence is expected and encouraged for complex queries
 - Wait for tool results before answering — never fabricate data
 

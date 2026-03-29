@@ -18,7 +18,8 @@ import {
   Users,
   Building2,
   Zap,
-  RefreshCcw
+  RefreshCcw,
+  Sparkles,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -66,22 +67,44 @@ export function NewsView() {
   const [savedArticles, setSavedArticles] = useState<string[]>([])
   const [articles, setArticles] = useState<NewsItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
   const { openChatWithQuery } = useAppStore()
 
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
-  const fetchNews = () => {
-    setLoading(true)
-    fetch('/api/news')
+  const fetchNews = (isLoadMore = false) => {
+    if (isLoadMore) setLoadingMore(true)
+    else setLoading(true)
+
+    const nextPage = isLoadMore ? page + 1 : 1
+
+    fetch(`/api/news?page=${nextPage}&limit=10`)
       .then(res => res.json())
       .then(data => {
         if (data && data.articles) {
-          setArticles(data.articles)
+          if (isLoadMore) {
+            // Deduplicate based on id/url
+            setArticles(prev => {
+              const existingIds = new Set(prev.map(a => a.id))
+              const newArticles = data.articles.filter((a: NewsItem) => !existingIds.has(a.id))
+              return [...prev, ...newArticles]
+            })
+            setPage(nextPage)
+          } else {
+            setArticles(data.articles)
+            setPage(1)
+          }
+          setHasMore(data.hasMore)
           setLastUpdated(new Date())
         }
       })
       .catch(console.error)
-      .finally(() => setLoading(false))
+      .finally(() => {
+        setLoading(false)
+        setLoadingMore(false)
+      })
   }
 
   useEffect(() => {
@@ -135,7 +158,7 @@ export function NewsView() {
                 </span>
               )}
               <button 
-                onClick={fetchNews}
+                onClick={() => fetchNews()}
                 disabled={loading}
                 className="flex items-center gap-1 text-xs text-primary hover:bg-primary/10 px-2 py-0.5 rounded-full disabled:opacity-50 transition-colors bg-primary/5 border border-primary/20"
               >
@@ -198,7 +221,7 @@ export function NewsView() {
         <motion.div variants={item} className="grid md:grid-cols-2 gap-4">
           {loading ? (
             Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="bg-card border border-border rounded-xl p-5 space-y-4">
+              <div key={i} className="bg-card border border-border rounded-xl p-5 space-y-4 h-[240px]">
                 <div className="flex gap-2"><div className="w-16 h-5 bg-muted rounded animate-pulse" /><div className="w-20 h-5 bg-muted rounded animate-pulse" /></div>
                 <div className="w-full h-6 bg-muted rounded animate-pulse" />
                 <div className="w-3/4 h-6 bg-muted rounded animate-pulse" />
@@ -209,90 +232,109 @@ export function NewsView() {
             filteredNews.slice(0, 2).map((news) => (
             <div
               key={news.id}
-              className="bg-card border border-border rounded-xl p-5 hover:border-primary/50 transition-all cursor-pointer group"
+              className="bg-card border border-border rounded-xl p-5 hover:border-primary/50 transition-all cursor-pointer group flex flex-col h-full"
               onClick={() => setExpandedNews(expandedNews === news.id ? null : news.id)}
             >
-              <div className="flex items-center gap-2 mb-3">
-                <span className={cn(
-                  "text-xs font-medium px-2 py-0.5 rounded",
-                  getSentimentColor(news.sentiment)
-                )}>
-                  {news.sentiment === 'positive' ? 'Bullish' : 
-                   news.sentiment === 'negative' ? 'Bearish' : 'Neutral'}
-                </span>
-                <span className="text-xs text-muted-foreground">{news.category}</span>
-                <span className="text-xs text-muted-foreground ml-auto flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {news.time}
-                </span>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className={cn(
+                    "text-xs font-medium px-2 py-0.5 rounded",
+                    getSentimentColor(news.sentiment)
+                  )}>
+                    {news.sentiment === 'positive' ? 'Bullish' : 
+                    news.sentiment === 'negative' ? 'Bearish' : 'Neutral'}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{news.category}</span>
+                  <span className="text-xs text-muted-foreground ml-auto flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {news.time}
+                  </span>
+                </div>
+
+                <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors line-clamp-2 min-h-[3.5rem]">
+                  {news.title}
+                </h3>
+                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                  {news.summary}
+                </p>
               </div>
 
-              <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                {news.title}
-              </h3>
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                {news.summary}
-              </p>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Impact:</span>
-                  <div className="w-20 h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div 
+              <div className="mt-auto space-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2 flex-1">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">Impact:</span>
+                    <div className="flex-1 max-w-[100px] h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className={cn(
+                          "h-full rounded-full transition-all",
+                          news.impactScore >= 80 ? "bg-accent" :
+                          news.impactScore >= 60 ? "bg-primary" :
+                          "bg-muted-foreground"
+                        )}
+                        style={{ width: `${news.impactScore}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-medium tabular-nums">{news.impactScore}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); toggleSave(news.id) }}
                       className={cn(
-                        "h-full rounded-full transition-all",
-                        news.impactScore >= 80 ? "bg-accent" :
-                        news.impactScore >= 60 ? "bg-primary" :
-                        "bg-muted-foreground"
+                        "p-1.5 rounded hover:bg-muted transition-colors",
+                        savedArticles.includes(news.id) ? "text-accent" : "text-muted-foreground"
                       )}
-                      style={{ width: `${news.impactScore}%` }}
-                    />
+                    >
+                      <Bookmark className={cn("w-4 h-4", savedArticles.includes(news.id) && "fill-current")} />
+                    </button>
+                    <button 
+                      onClick={(e) => e.stopPropagation()}
+                      className="p-1.5 rounded hover:bg-muted text-muted-foreground transition-colors"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); window.open(news.url, '_blank') }}
+                      className="flex items-center gap-1 text-[11px] font-bold bg-primary/10 text-primary px-2.5 py-1.5 rounded hover:bg-primary/20 transition-colors"
+                    >
+                      Read <ExternalLink className="w-3 h-3" />
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        const detailedQuery = `Analyze this specific news article: "${news.title}". 
+Summary: ${news.summary}
+Source: ${news.source}
+URL: ${news.url}
+${news.affectedStocks.length > 0 ? `Affected stocks: ${news.affectedStocks.join(', ')}.` : ''} 
+Provide a deep analysis of its impact on the Indian markets and my portfolio.`
+                        openChatWithQuery(detailedQuery)
+                      }}
+                      className="flex items-center gap-1 text-[11px] font-bold bg-accent/10 text-accent px-2.5 py-1.5 rounded hover:bg-accent/20 transition-colors"
+                    >
+                      Ask AI <Sparkles className="w-3 h-3" />
+                    </button>
                   </div>
-                  <span className="text-xs font-medium tabular-nums">{news.impactScore}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); toggleSave(news.id) }}
-                    className={cn(
-                      "p-1.5 rounded hover:bg-muted transition-colors",
-                      savedArticles.includes(news.id) ? "text-accent" : "text-muted-foreground"
-                    )}
-                  >
-                    <Bookmark className={cn("w-4 h-4", savedArticles.includes(news.id) && "fill-current")} />
-                  </button>
-                  <button 
-                    onClick={(e) => e.stopPropagation()}
-                    className="p-1.5 rounded hover:bg-muted text-muted-foreground transition-colors"
-                  >
-                    <Share2 className="w-4 h-4" />
-                  </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); window.open(news.url, '_blank') }}
-                    className="flex items-center gap-1 text-xs font-semibold bg-primary/10 text-primary px-3 py-1.5 rounded hover:bg-primary/20 transition-colors ml-1"
-                  >
-                    Read Article <ExternalLink className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
 
-              {/* Affected Stocks */}
-              {news.affectedStocks.length > 0 && (
-                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border">
-                  <span className="text-xs text-muted-foreground">Affected:</span>
-                  <div className="flex flex-wrap gap-1">
-                    {news.affectedStocks.slice(0, 4).map((stock) => (
-                      <span key={stock} className="text-xs px-2 py-0.5 rounded bg-muted font-medium">
-                        {stock}
-                      </span>
-                    ))}
-                    {news.affectedStocks.length > 4 && (
-                      <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
-                        +{news.affectedStocks.length - 4}
-                      </span>
-                    )}
+                {/* Affected Stocks */}
+                {news.affectedStocks.length > 0 && (
+                  <div className="flex items-center gap-2 pt-4 border-t border-border">
+                    <span className="text-xs text-muted-foreground">Affected:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {news.affectedStocks.slice(0, 4).map((stock) => (
+                        <span key={stock} className="text-xs px-2 py-0.5 rounded bg-muted font-medium">
+                          {stock}
+                        </span>
+                      ))}
+                      {news.affectedStocks.length > 4 && (
+                        <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                          +{news.affectedStocks.length - 4}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )))}
         </motion.div>
@@ -371,7 +413,13 @@ export function NewsView() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
-                              openChatWithQuery(`Explain this news and its impact on Indian markets and my portfolio: "${news.title}". ${news.affectedStocks.length > 0 ? `It affects stocks: ${news.affectedStocks.join(', ')}.` : ''} Give me your analysis.`)
+                              const detailedQuery = `Analyze this specific news article: "${news.title}". 
+Summary: ${news.summary}
+Source: ${news.source}
+URL: ${news.url}
+${news.affectedStocks.length > 0 ? `Affected stocks: ${news.affectedStocks.join(', ')}.` : ''} 
+Provide a deep analysis of its impact on the Indian markets and my portfolio.`
+                              openChatWithQuery(detailedQuery)
                             }}
                             className="flex items-center gap-1 text-sm text-accent hover:underline font-medium"
                           >
@@ -407,12 +455,18 @@ export function NewsView() {
         </div>
       </motion.div>
 
-      {/* Load More */}
-      <motion.div variants={item} className="flex justify-center">
-        <button className="px-6 py-2 rounded-lg bg-muted hover:bg-muted/80 text-sm font-medium transition-colors">
-          Load More News
-        </button>
-      </motion.div>
+      {hasMore && (
+        <motion.div variants={item} className="flex justify-center mt-4">
+          <button 
+            onClick={() => fetchNews(true)}
+            disabled={loadingMore}
+            className="px-6 py-2 rounded-lg bg-muted hover:bg-muted/80 text-sm font-medium transition-colors flex items-center gap-2"
+          >
+            {loadingMore && <RefreshCcw className="w-4 h-4 animate-spin" />}
+            {loadingMore ? 'Loading...' : 'Load More News'}
+          </button>
+        </motion.div>
+      )}
     </motion.div>
   )
 }

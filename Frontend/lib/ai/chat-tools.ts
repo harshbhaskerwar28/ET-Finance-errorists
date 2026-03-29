@@ -242,6 +242,23 @@ export const CHAT_TOOLS: ToolDefinition[] = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'fetch_article_content',
+      description: 'Fetch the full text content of a news article or web page from a URL. Use this when the user asks for a deep analysis of a specific link or when a summary is not enough.',
+      parameters: {
+        type: 'object',
+        properties: {
+          url: {
+            type: 'string',
+            description: 'The full URL of the article to fetch content from.',
+          },
+        },
+        required: ['url'],
+      },
+    },
+  },
 ]
 
 // ── Tool Executor ─────────────────────────────────────────────────────────────
@@ -787,6 +804,36 @@ export async function runChatTool(
         }
 
         return JSON.stringify({ sectors: sectorResults, chart })
+      }
+
+      case 'fetch_article_content': {
+        const { url } = args
+        if (!url) return JSON.stringify({ error: 'URL required' })
+
+        try {
+          const res = await fetch(url, { 
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+            signal: AbortSignal.timeout(8000) 
+          })
+          const html = await res.text()
+          
+          // Basic HTML stripping (remove scripts, styles, and tags)
+          const cleanText = html
+            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+            .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, 4000) // limit to 4k characters for LLM context
+
+          return JSON.stringify({
+            url,
+            content: cleanText,
+            note: 'Content extracted and truncated to 4000 characters.'
+          })
+        } catch (err) {
+          return JSON.stringify({ error: `Failed to fetch article: ${String(err)}` })
+        }
       }
 
       default:
