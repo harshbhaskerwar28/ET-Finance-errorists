@@ -56,54 +56,72 @@ function getYahooSymbol(sym: string): string {
   return s
 }
 
-// Fetch real-time stock quote from Yahoo Finance
-export async function getStockQuote(symbol: string): Promise<StockQuote> {
+// Fetch real-time stock quote from Yahoo Finance with retries
+export async function getStockQuote(symbol: string, retries = 3): Promise<StockQuote> {
   const nsSymbol = getYahooSymbol(symbol)
+  let lastError: any = null
   
-  try {
-    const res = await fetch(
-      `https://query1.finance.yahoo.com/v8/finance/chart/${nsSymbol}?interval=1d&range=2d`,
-      { headers: YF_HEADERS, next: { revalidate: 60 } }
-    )
-    
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const data = await res.json()
-    const result = data?.chart?.result?.[0]
-    const meta = result?.meta
-    const quotes = result?.indicators?.quote?.[0]
-    const closes = quotes?.close?.filter(Boolean) ?? []
-    const lastClose = closes[closes.length - 1] ?? meta?.regularMarketPrice
-    const prevClose = meta?.chartPreviousClose ?? meta?.previousClose ?? closes[closes.length - 2]
-    
-    const price = meta?.regularMarketPrice ?? lastClose
-    const change = price - prevClose
-    const changePct = prevClose ? (change / prevClose) * 100 : 0
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(
+        `https://query1.finance.yahoo.com/v8/finance/chart/${nsSymbol}?interval=1d&range=2d`,
+        { 
+          headers: YF_HEADERS, 
+          next: { revalidate: i === 0 ? 60 : 0 }, // skip cache on retries
+          signal: AbortSignal.timeout(5000)
+        }
+      )
+      
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = await res.json()
+      const result = data?.chart?.result?.[0]
+      if (!result) throw new Error('No chart data in result')
+      
+      const meta = result?.meta
+      const quotes = result?.indicators?.quote?.[0]
+      const closes = quotes?.close?.filter((v: any) => v !== null && v !== undefined) ?? []
+      const lastClose = closes[closes.length - 1] ?? meta?.regularMarketPrice
+      const prevClose = meta?.chartPreviousClose ?? meta?.previousClose ?? closes[closes.length - 2]
+      
+      const price = meta?.regularMarketPrice ?? lastClose
+      const change = price - prevClose
+      const changePct = prevClose ? (change / prevClose) * 100 : 0
 
-    return {
-      symbol: symbol.toUpperCase(),
-      name: meta?.longName ?? meta?.shortName ?? symbol,
-      price: Number(price?.toFixed(2)),
-      change: Number(change?.toFixed(2)),
-      changePct: Number(changePct?.toFixed(2)),
-      open: meta?.regularMarketOpen,
-      high: meta?.regularMarketDayHigh,
-      low: meta?.regularMarketDayLow,
-      volume: meta?.regularMarketVolume,
-      marketCap: meta?.marketCap,
-      week52High: meta?.fiftyTwoWeekHigh,
-      week52Low: meta?.fiftyTwoWeekLow,
-      currency: meta?.currency ?? 'INR',
-      sector: meta?.sector,
+      if (price === undefined || price === null) throw new Error('Price is undefined')
+
+      return {
+        symbol: symbol.toUpperCase(),
+        name: meta?.longName ?? meta?.shortName ?? symbol,
+        price: Number(price?.toFixed(2)),
+        change: Number(change?.toFixed(2)),
+        changePct: Number(changePct?.toFixed(2)),
+        open: meta?.regularMarketOpen,
+        high: meta?.regularMarketDayHigh,
+        low: meta?.regularMarketDayLow,
+        volume: meta?.regularMarketVolume,
+        marketCap: meta?.marketCap,
+        week52High: meta?.fiftyTwoWeekHigh,
+        week52Low: meta?.fiftyTwoWeekLow,
+        currency: meta?.currency ?? 'INR',
+        sector: meta?.sector,
+      }
+    } catch (e) {
+      lastError = e
+      // Wait a bit before retry (exponential backoff)
+      if (i < retries - 1) {
+        await new Promise(r => setTimeout(r, 500 * (i + 1)))
+      }
     }
-  } catch (e) {
-    // Return graceful fallback
-    return {
-      symbol: symbol.toUpperCase(),
-      price: 0,
-      change: 0,
-      changePct: 0,
-      name: symbol,
-    }
+  }
+
+  // Final fallback
+  console.error(`Failed to fetch ${symbol} after ${retries} attempts:`, lastError)
+  return {
+    symbol: symbol.toUpperCase(),
+    price: 0,
+    change: 0,
+    changePct: 0,
+    name: symbol,
   }
 }
 

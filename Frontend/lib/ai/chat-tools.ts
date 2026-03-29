@@ -327,6 +327,18 @@ export async function runChatTool(
         if (symbols.length === 0) return JSON.stringify({ error: 'No symbols provided' })
 
         const quotes = await getMultipleQuotes(symbols)
+        
+        // If all prices are 0, try a web search fallback for information
+        const allFailed = quotes.every(q => q.price === 0)
+        if (allFailed && symbols.length === 1) {
+          const searchResult = await runChatTool('web_search', { query: `current price of ${symbols[0]}` }, userId)
+          return JSON.stringify({
+             quotes,
+             fallbackInfo: JSON.parse(searchResult),
+             note: 'Direct market feed failed. Returning latest information from web search.'
+          })
+        }
+
         return JSON.stringify(quotes)
       }
 
