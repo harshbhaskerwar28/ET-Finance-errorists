@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
+import { Sidebar } from "@/components/Sidebar"
+import { Header } from "@/components/Header"
+import { NavigationGuard } from "@/components/NavigationGuard"
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -45,8 +48,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-        {children}
+      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased bg-[#0d0f14] text-white selection:bg-red-500/30 selection:text-white`}>
+        <div className="flex h-screen overflow-hidden">
+          <Sidebar />
+          <div className="flex flex-1 flex-col overflow-hidden relative">
+            <Header />
+            <main className="flex-1 overflow-y-auto w-full relative">
+              <NavigationGuard>
+                {children}
+              </NavigationGuard>
+            </main>
+          </div>
+        </div>
         <Analytics />
       </body>
     </html>
