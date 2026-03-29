@@ -12,11 +12,10 @@ import {
   Calculator,
   Settings,
   ChevronLeft,
-  LogOut,
-  User
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { mockUser, mockAlerts } from '@/lib/mock-data'
+import { mockAlerts } from '@/lib/mock-data'
+import { useUser } from '@clerk/nextjs'
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -31,8 +30,28 @@ const navItems = [
 const unreadAlerts = mockAlerts.filter(a => !a.read).length
 
 export function Sidebar() {
-  const { sidebarCollapsed, setSidebarCollapsed, sidebarOpen, setSidebarOpen, activeView, setActiveView, clearSubView, user } = useAppStore()
+  const { sidebarCollapsed, setSidebarCollapsed, sidebarOpen, setSidebarOpen, activeView, setActiveView, clearSubView, user, supabaseProfile } = useAppStore()
+  const { user: clerkUser } = useUser()
   const isExpanded = !sidebarCollapsed
+
+  // Resolve display name: Clerk first name > Supabase first_name > store name
+  const displayName =
+    clerkUser?.firstName ||
+    supabaseProfile?.first_name ||
+    user.name ||
+    clerkUser?.fullName ||
+    'You'
+
+  const initials = displayName
+    .split(' ')
+    .slice(0, 2)
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+
+  const personaLabel =
+    supabaseProfile?.persona?.replace(/_/g, ' ') ||
+    (user.persona?.replace(/_/g, ' ') ?? 'Investor')
 
   return (
     <>
@@ -176,13 +195,28 @@ export function Sidebar() {
             </AnimatePresence>
           </button>
 
-          <div className={cn(
-            "mt-2 flex items-center gap-3 px-3 py-2.5 rounded-lg bg-sidebar-accent/50",
-            !isExpanded && "justify-center"
-          )}>
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-              <User className="w-4 h-4 text-primary" />
-            </div>
+          {/* User info card */}
+          <div
+            className={cn(
+              'mt-2 flex items-center gap-3 px-3 py-2.5 rounded-lg bg-sidebar-accent/50 cursor-pointer hover:bg-sidebar-accent transition-colors',
+              !isExpanded && 'justify-center'
+            )}
+            onClick={() => { setActiveView('settings'); clearSubView() }}
+          >
+            {/* Avatar */}
+            {clerkUser?.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={clerkUser.imageUrl}
+                alt={displayName}
+                className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                <span className="text-xs font-semibold text-primary">{initials || 'U'}</span>
+              </div>
+            )}
+
             <AnimatePresence>
               {isExpanded && (
                 <motion.div
@@ -192,10 +226,10 @@ export function Sidebar() {
                   className="flex-1 min-w-0"
                 >
                   <p className="text-sm font-medium text-sidebar-foreground truncate">
-                    {user.name || mockUser.name}
+                    {displayName}
                   </p>
-                  <p className="text-xs text-sidebar-foreground/60 truncate">
-                    {user.persona ? user.persona.replace('_', ' ') : mockUser.persona.replace('_', ' ')}
+                  <p className="text-xs text-sidebar-foreground/60 truncate capitalize">
+                    {personaLabel}
                   </p>
                 </motion.div>
               )}

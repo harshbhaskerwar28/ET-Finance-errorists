@@ -1,16 +1,18 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { ClerkProvider } from '@clerk/nextjs'
+import { dark } from '@clerk/themes'
 import './globals.css'
 
 const inter = Inter({ 
-  subsets: ["latin"],
+  subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
 })
 
 const jetbrainsMono = JetBrains_Mono({ 
-  subsets: ["latin"],
+  subsets: ['latin'],
   variable: '--font-jetbrains',
   display: 'swap',
 })
@@ -44,11 +46,22 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-        {children}
-        <Analytics />
-      </body>
-    </html>
+    <ClerkProvider
+      appearance={{
+        baseTheme: dark,
+        variables: {
+          colorPrimary: '#16a34a', // matches Tailwind primary (green) if needed, or omit config to default
+          colorBackground: '#0d0f14', // matches your layout bg
+          colorInputBackground: '#1d212b',
+        }
+      }}
+    >
+      <html lang="en" className="dark">
+        <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
+          {children}
+          <Analytics />
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }

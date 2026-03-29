@@ -54,7 +54,7 @@ const totalGain = totalNetWorth - totalInvested
 const dayChange = mockPortfolio.reduce((sum, h) => sum + (h.value * h.dayChange / 100), 0)
 
 export function DashboardView() {
-  const { setActiveView, setSubView } = useAppStore()
+  const { setActiveView, setSubView, openChatWithQuery } = useAppStore()
   const topGainer = mockPortfolio.reduce((prev, curr) => 
     curr.dayChange > prev.dayChange ? curr : prev
   )
@@ -88,7 +88,7 @@ export function DashboardView() {
             </p>
           </div>
           <button 
-            onClick={() => setActiveView('chat')}
+            onClick={() => openChatWithQuery(`Good morning brief: Nifty is up 0.63%, my portfolio is up today, and TCS Q3 results beat expectations. Please analyse the impact on my IT holdings and give me your morning market brief.`)}
             className="shrink-0 flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
           >
             Ask AI
@@ -382,7 +382,7 @@ export function DashboardView() {
                 Tax Report
               </button>
               <button
-                onClick={() => setActiveView('chat')}
+                onClick={() => openChatWithQuery('Open my financial dashboard: analyse my portfolio performance, identify my top opportunities and risks, and suggest 3 actionable next steps.')}
                 className="p-3 rounded-lg bg-muted/50 hover:bg-muted text-sm font-medium transition-colors"
               >
                 Ask AI

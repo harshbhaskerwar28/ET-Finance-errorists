@@ -100,6 +100,7 @@ export function NewsView() {
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedNews, setExpandedNews] = useState<string | null>(null)
   const [savedArticles, setSavedArticles] = useState<string[]>([])
+  const { openChatWithQuery } = useAppStore()
 
   const filteredNews = extendedNews.filter(news => {
     const matchesCategory = activeCategory === 'all' || 
@@ -335,9 +336,14 @@ export function NewsView() {
                             <Bookmark className="w-3 h-3" />
                             Save
                           </button>
-                          <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-                            <Share2 className="w-3 h-3" />
-                            Share
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openChatWithQuery(`Explain this news and its impact on Indian markets and my portfolio: "${news.title}". ${news.affectedStocks.length > 0 ? `It affects stocks: ${news.affectedStocks.join(', ')}.` : ''} Give me your analysis.`)
+                            }}
+                            className="flex items-center gap-1 text-sm text-accent hover:underline font-medium"
+                          >
+                            Ask AI ↗
                           </button>
                         </div>
                       </motion.div>

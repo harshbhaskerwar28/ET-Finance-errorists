@@ -18,6 +18,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAppStore } from '@/lib/store'
 
 type AlertFilter = 'all' | 'unread' | 'price' | 'earnings' | 'insider' | 'technical'
 
@@ -69,6 +70,7 @@ export function AlertsView() {
   const [activeFilter, setActiveFilter] = useState<AlertFilter>('all')
   const [alerts, setAlerts] = useState(mockAlerts)
   const [showCreateAlert, setShowCreateAlert] = useState(false)
+  const { openChatWithQuery } = useAppStore()
 
   const filteredAlerts = alerts.filter(alert => {
     if (activeFilter === 'all') return true
@@ -230,6 +232,12 @@ export function AlertsView() {
                         <button className="text-xs text-primary hover:underline flex items-center gap-1">
                           View Details
                           <ChevronRight className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => openChatWithQuery(`Analyse this alert about ${alert.stock}: "${alert.title}" — ${alert.description}. What does this mean for my portfolio? Should I take any action?`)}
+                          className="text-xs text-accent hover:underline flex items-center gap-1 ml-auto"
+                        >
+                          Ask AI ↗
                         </button>
                       </div>
                     </div>

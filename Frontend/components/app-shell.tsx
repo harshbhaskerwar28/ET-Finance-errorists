@@ -18,6 +18,20 @@ import { ScreenerView } from "@/components/screener/screener-view"
 import { WatchlistView } from "@/components/watchlist/watchlist-view"
 import { cn } from "@/lib/utils"
 
+function LoadingScreen() {
+  return (
+    <div className="flex h-screen items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-4">
+        <div className="relative">
+          <div className="h-12 w-12 rounded-lg bg-accent animate-pulse" />
+          <div className="absolute inset-0 h-12 w-12 rounded-lg bg-accent/50 animate-ping" />
+        </div>
+        <p className="text-sm text-muted-foreground font-mono tracking-wider">LOADING ET AI</p>
+      </div>
+    </div>
+  )
+}
+
 export function AppShell() {
   const { hasCompletedOnboarding, activeView, subView, sidebarCollapsed, setSubView, clearSubView } = useAppStore()
   const [mounted, setMounted] = useState(false)
@@ -26,19 +40,7 @@ export function AppShell() {
     setMounted(true)
   }, [])
 
-  if (!mounted) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="h-12 w-12 rounded-lg bg-accent animate-pulse" />
-            <div className="absolute inset-0 h-12 w-12 rounded-lg bg-accent/50 animate-ping" />
-          </div>
-          <p className="text-sm text-muted-foreground font-mono tracking-wider">LOADING ET AI</p>
-        </div>
-      </div>
-    )
-  }
+  if (!mounted) return <LoadingScreen />
 
   if (!hasCompletedOnboarding) {
     return <OnboardingFlow />
