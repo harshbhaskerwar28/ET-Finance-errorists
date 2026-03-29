@@ -155,14 +155,14 @@ graph LR
     subgraph EDGE["Edge API Layer — Next.js Serverless Functions"]
         direction TB
         AUTH[Clerk Auth Middleware]
-        API1[/api/onboarding]
-        API2[/api/chat]
-        API3[/api/portfolio]
-        API4[/api/money-health]
-        API5[/api/fire-planner]
-        API6[/api/markets]
-        API7[/api/news]
-        API8[/api/brief]
+        API1["/api/onboarding"]
+        API2["/api/chat"]
+        API3["/api/portfolio"]
+        API4["/api/money-health"]
+        API5["/api/fire-planner"]
+        API6["/api/markets"]
+        API7["/api/news"]
+        API8["/api/brief"]
     end
 
     subgraph AI["AI Orchestration Layer"]
