@@ -76,6 +76,7 @@ interface ChatMessage {
   toolsUsed?: string[]
   suggestions?: string[]
   charts?: ChartData[]
+  references?: Array<{ title: string; url: string; source: string }>
   isStreaming?: boolean
 }
 
@@ -550,6 +551,38 @@ function MarkdownContent({ text }: { text: string }) {
   return <>{elements}</>
 }
 
+// ── References Card ────────────────────────────────────────────────────────
+
+function ReferencesCard({ references }: { references: Array<{ title: string; url: string; source: string }> }) {
+  const [open, setOpen] = useState(false)
+  if (!references || references.length === 0) return null
+  return (
+    <div className="mt-3 rounded-xl border border-white/10 bg-white/5 overflow-hidden">
+      <button onClick={() => setOpen(!open)} className="flex items-center justify-between w-full px-4 py-2.5 hover:bg-white/5 transition-colors">
+        <div className="flex items-center gap-2">
+           <Globe className="w-4 h-4 text-sky-400" />
+           <span className="text-xs font-semibold text-slate-200">Sources & References ({references.length})</span>
+        </div>
+        <ChevronRight className={cn("w-4 h-4 text-slate-500 transition-transform", open && "rotate-90")} />
+      </button>
+      <AnimatePresence>
+        {open && (
+           <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
+             <div className="px-4 pb-3 space-y-2.5 border-t border-white/10 pt-3 bg-black/20">
+               {references.map((r, i) => (
+                 <a key={i} href={r.url} target="_blank" rel="noopener noreferrer" className="block text-[13px] text-indigo-400 hover:text-indigo-300 underline underline-offset-2 break-words">
+                   <span className="text-slate-400 no-underline mr-1 font-medium">[{i+1}]</span>
+                   {r.title} <span className="text-slate-500 no-underline ml-1 text-[11px]">({r.source})</span>
+                 </a>
+               ))}
+             </div>
+           </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 // ── Streaming wrapper (adds blinking cursor while streaming) ───────────────
 
 function StreamingText({ text, done }: { text: string; done?: boolean }) {
@@ -694,6 +727,7 @@ export function ChatView() {
   const [activeTools, setActiveTools] = useState<string[]>([])
   const [streamingText, setStreamingText] = useState('')
   const [streamingCharts, setStreamingCharts] = useState<ChartData[]>([])
+  const [streamingReferences, setStreamingReferences] = useState<Array<{ title: string; url: string; source: string }>>([])
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const abortRef = useRef<AbortController | null>(null)
@@ -701,18 +735,6 @@ export function ChatView() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, streamingText, activeTools])
-
-  // Auto-send pending query from "Ask AI about X" context buttons
-  useEffect(() => {
-    if (pendingChatQuery) {
-      clearPendingChatQuery()
-      // Small delay to let component fully mount
-      setTimeout(() => {
-        sendMessage(pendingChatQuery)
-      }, 300)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
 
   const sendMessage = useCallback(async (text: string) => {
@@ -730,6 +752,7 @@ export function ChatView() {
     setIsLoading(true)
     setStreamingText('')
     setStreamingCharts([])
+    setStreamingReferences([])
     setActiveTools([])
 
     // Parallel Title Generation on First Message
@@ -814,6 +837,12 @@ export function ChatView() {
                 charts.push(ev.chart)
                 setStreamingCharts(prev => [...prev, ev.chart])
                 break
+              case 'references':
+                setStreamingReferences(prev => {
+                   const r = [...prev, ...ev.references]
+                   return Array.from(new Map(r.map(item => [item.url, item])).values()) // deduplicate
+                })
+                break
               case 'done':
                 break
               case 'error':
@@ -854,6 +883,7 @@ export function ChatView() {
         toolsUsed: usedTools,
         suggestions,
         charts,
+        references: streamingReferences,
       }])
     } catch (err: any) {
       if (err?.name === 'AbortError') return
@@ -870,9 +900,26 @@ export function ChatView() {
       setIsLoading(false)
       setStreamingText('')
       setStreamingCharts([])
+      setStreamingReferences([])
       setActiveTools([])
     }
   }, [messages, isLoading])
+
+  const lastProcessedQuery = useRef<string | null>(null)
+
+  // Auto-send pending query from "Ask AI about X" context buttons
+  useEffect(() => {
+    if (pendingChatQuery && pendingChatQuery !== lastProcessedQuery.current) {
+      lastProcessedQuery.current = pendingChatQuery
+      const query = pendingChatQuery
+      clearPendingChatQuery()
+      
+      // Small delay to let component fully mount
+      setTimeout(() => {
+        sendMessage(query)
+      }, 300)
+    }
+  }, [pendingChatQuery, clearPendingChatQuery, sendMessage])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -895,10 +942,12 @@ export function ChatView() {
         content: streamingText + '\n\n*(Response stopped)*',
         timestamp: new Date(),
         charts: streamingCharts.length > 0 ? streamingCharts : undefined,
+        references: streamingReferences.length > 0 ? streamingReferences : undefined,
       }])
     }
     setStreamingText('')
     setStreamingCharts([])
+    setStreamingReferences([])
     setActiveTools([])
   }
 
@@ -1014,6 +1063,11 @@ export function ChatView() {
                   </div>
                 )}
 
+                {/* References */}
+                {msg.references && msg.references.length > 0 && (
+                  <ReferencesCard references={msg.references} />
+                )}
+
                 {/* Suggestions */}
                 {msg.suggestions && msg.suggestions.length > 0 && (
                   <div className="mt-2.5 space-y-1.5 w-full">
@@ -1123,6 +1177,10 @@ export function ChatView() {
                       <AIChart key={i} chart={chart} index={i} />
                     ))}
                   </div>
+                )}
+                
+                {streamingReferences.length > 0 && (
+                  <ReferencesCard references={streamingReferences} />
                 )}
               </div>
             </motion.div>

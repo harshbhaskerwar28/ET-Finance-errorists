@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { mockNews, type NewsItem } from '@/lib/mock-data'
 import { useAppStore } from '@/lib/store'
 import { 
   TrendingUp, 
@@ -18,7 +17,8 @@ import {
   BarChart2,
   Users,
   Building2,
-  Zap
+  Zap,
+  RefreshCcw
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -46,63 +46,51 @@ const item = {
   show: { opacity: 1, y: 0 }
 }
 
-// Extended news for demo
-const extendedNews: NewsItem[] = [
-  ...mockNews,
-  {
-    id: '7',
-    title: 'Adani Group Stocks Rally After Supreme Court Verdict',
-    summary: 'Adani group stocks saw a sharp rally today following favorable Supreme Court observations on the Hindenburg report case.',
-    source: 'ET Markets',
-    time: '12 hours ago',
-    category: 'Corporate',
-    impactScore: 82,
-    affectedStocks: ['ADANIENT', 'ADANIPORTS', 'ADANIPOWER'],
-    sentiment: 'positive'
-  },
-  {
-    id: '8',
-    title: 'IT Sector Outlook: Analysts Remain Cautious on Near-term Growth',
-    summary: 'Major brokerages have trimmed their IT sector growth estimates citing slower deal closures and client budget constraints.',
-    source: 'ET Tech',
-    time: '14 hours ago',
-    category: 'Sector',
-    impactScore: 68,
-    affectedStocks: ['TCS', 'INFY', 'WIPRO', 'HCLTECH', 'TECHM'],
-    sentiment: 'negative'
-  },
-  {
-    id: '9',
-    title: 'Gold Prices Hit Record High Amid Global Uncertainty',
-    summary: 'Gold prices surged to all-time highs as investors seek safe haven assets amid geopolitical tensions and inflation concerns.',
-    source: 'ET Markets',
-    time: '16 hours ago',
-    category: 'Macro',
-    impactScore: 72,
-    affectedStocks: ['GOLDIAM', 'TITAN'],
-    sentiment: 'positive'
-  },
-  {
-    id: '10',
-    title: 'Zomato Reports Profitable Quarter, Stock Jumps 8%',
-    summary: 'Zomato reported its third consecutive profitable quarter with strong growth in food delivery and quick commerce segments.',
-    source: 'ET Startups',
-    time: '18 hours ago',
-    category: 'Earnings',
-    impactScore: 85,
-    affectedStocks: ['ZOMATO'],
-    sentiment: 'positive'
-  }
-]
+export interface NewsItem {
+  id: string
+  title: string
+  summary: string
+  source: string
+  time: string
+  category: string
+  impactScore: number
+  affectedStocks: string[]
+  sentiment: 'positive' | 'negative' | 'neutral'
+  url?: string
+}
 
 export function NewsView() {
   const [activeCategory, setActiveCategory] = useState<NewsCategory>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedNews, setExpandedNews] = useState<string | null>(null)
   const [savedArticles, setSavedArticles] = useState<string[]>([])
+  const [articles, setArticles] = useState<NewsItem[]>([])
+  const [loading, setLoading] = useState(true)
   const { openChatWithQuery } = useAppStore()
 
-  const filteredNews = extendedNews.filter(news => {
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+
+  const fetchNews = () => {
+    setLoading(true)
+    fetch('/api/news')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.articles) {
+          setArticles(data.articles)
+          setLastUpdated(new Date())
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchNews()
+    const interval = setInterval(fetchNews, 60 * 60 * 1000) // 1 Hour
+    return () => clearInterval(interval)
+  }, [])
+
+  const filteredNews = articles.filter(news => {
     const matchesCategory = activeCategory === 'all' || 
       news.category.toLowerCase() === activeCategory.toLowerCase()
     const matchesSearch = news.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -135,7 +123,27 @@ export function NewsView() {
       <motion.div variants={item} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold">Personalized News Feed</h2>
-          <p className="text-sm text-muted-foreground">News filtered by your portfolio and interests</p>
+          <div className="flex flex-col md:flex-row md:items-center gap-2 mt-1">
+            <p className="text-sm text-muted-foreground">News filtered by your portfolio and interests.</p>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
+                Auto-updates every 1 hour
+              </span>
+              {lastUpdated && (
+                <span className="text-xs text-muted-foreground">
+                  Last updated: {lastUpdated.toLocaleTimeString()}
+                </span>
+              )}
+              <button 
+                onClick={fetchNews}
+                disabled={loading}
+                className="flex items-center gap-1 text-xs text-primary hover:bg-primary/10 px-2 py-0.5 rounded-full disabled:opacity-50 transition-colors bg-primary/5 border border-primary/20"
+              >
+                <RefreshCcw className={cn("w-3 h-3", loading && "animate-spin")} />
+                {loading ? 'Refreshing...' : 'Refresh Now'}
+              </button>
+            </div>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative flex-1 md:w-64">
@@ -156,8 +164,8 @@ export function NewsView() {
         {categories.map((category) => {
           const Icon = category.icon
           const count = category.id === 'all' 
-            ? extendedNews.length 
-            : extendedNews.filter(n => n.category.toLowerCase() === category.id).length
+            ? articles.length 
+            : articles.filter(n => n.category.toLowerCase() === category.id).length
           
           return (
             <button
@@ -188,7 +196,17 @@ export function NewsView() {
       {/* Featured News */}
       {activeCategory === 'all' && (
         <motion.div variants={item} className="grid md:grid-cols-2 gap-4">
-          {filteredNews.slice(0, 2).map((news) => (
+          {loading ? (
+            Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="bg-card border border-border rounded-xl p-5 space-y-4">
+                <div className="flex gap-2"><div className="w-16 h-5 bg-muted rounded animate-pulse" /><div className="w-20 h-5 bg-muted rounded animate-pulse" /></div>
+                <div className="w-full h-6 bg-muted rounded animate-pulse" />
+                <div className="w-3/4 h-6 bg-muted rounded animate-pulse" />
+                <div className="w-full h-16 bg-muted rounded animate-pulse" />
+              </div>
+            ))
+          ) : (
+            filteredNews.slice(0, 2).map((news) => (
             <div
               key={news.id}
               className="bg-card border border-border rounded-xl p-5 hover:border-primary/50 transition-all cursor-pointer group"
@@ -248,6 +266,12 @@ export function NewsView() {
                   >
                     <Share2 className="w-4 h-4" />
                   </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); window.open(news.url, '_blank') }}
+                    className="flex items-center gap-1 text-xs font-semibold bg-primary/10 text-primary px-3 py-1.5 rounded hover:bg-primary/20 transition-colors ml-1"
+                  >
+                    Read Article <ExternalLink className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
 
@@ -270,14 +294,22 @@ export function NewsView() {
                 </div>
               )}
             </div>
-          ))}
+          )))}
         </motion.div>
       )}
 
       {/* News List */}
       <motion.div variants={item} className="bg-card border border-border rounded-xl overflow-hidden">
         <div className="divide-y divide-border">
-          {(activeCategory === 'all' ? filteredNews.slice(2) : filteredNews).map((news) => (
+          {loading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="p-4 space-y-3">
+                <div className="flex gap-2"><div className="w-16 h-4 bg-muted rounded animate-pulse" /><div className="w-24 h-4 bg-muted rounded animate-pulse" /></div>
+                <div className="w-3/4 h-5 bg-muted rounded animate-pulse" />
+              </div>
+            ))
+          ) : (
+            (activeCategory === 'all' ? filteredNews.slice(2) : filteredNews).map((news) => (
             <motion.article
               key={news.id}
               variants={item}
@@ -328,7 +360,7 @@ export function NewsView() {
                         )}
 
                         <div className="flex items-center gap-3">
-                          <button className="flex items-center gap-1 text-sm text-primary hover:underline">
+                          <button onClick={() => window.open(news.url, '_blank')} className="flex items-center gap-1 text-sm text-primary hover:underline">
                             Read full article
                             <ExternalLink className="w-3 h-3" />
                           </button>
@@ -371,7 +403,7 @@ export function NewsView() {
                 </div>
               </div>
             </motion.article>
-          ))}
+          )))}
         </div>
       </motion.div>
 

@@ -1,10 +1,10 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   mockPortfolio, 
   mockMutualFunds, 
-  mockNews, 
   mockAlerts, 
   mockMoneyHealthMetrics,
   mockSectorPerformance,
@@ -61,6 +61,21 @@ export function DashboardView() {
   const topLoser = mockPortfolio.reduce((prev, curr) => 
     curr.dayChange < prev.dayChange ? curr : prev
   )
+
+  const [articles, setArticles] = useState<any[]>([])
+  const [loadingNews, setLoadingNews] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/news')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.articles) {
+          setArticles(data.articles)
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoadingNews(false))
+  }, [])
 
   return (
     <motion.div
@@ -405,37 +420,48 @@ export function DashboardView() {
           </button>
         </div>
         <div className="grid md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border">
-          {mockNews.slice(0, 3).map((news) => (
-            <div key={news.id} className="p-4 hover:bg-muted/50 transition-colors cursor-pointer">
-              <div className="flex items-center gap-2 mb-2">
-                <span className={cn(
-                  "text-xs font-medium px-2 py-0.5 rounded",
-                  news.sentiment === 'positive' ? "bg-primary/10 text-primary" :
-                  news.sentiment === 'negative' ? "bg-destructive/10 text-destructive" :
-                  "bg-muted text-muted-foreground"
-                )}>
-                  {news.category}
-                </span>
-                <span className="text-xs text-muted-foreground">{news.time}</span>
+          {loadingNews ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="p-4 space-y-3">
+                <div className="flex gap-2"><div className="w-16 h-5 bg-muted rounded animate-pulse" /><div className="w-20 h-5 bg-muted rounded animate-pulse" /></div>
+                <div className="w-full h-4 bg-muted rounded animate-pulse" />
+                <div className="w-3/4 h-4 bg-muted rounded animate-pulse" />
+                <div className="pt-2 flex gap-2"><div className="w-12 h-2 bg-muted rounded animate-pulse" /><div className="flex-1 h-2 bg-muted rounded animate-pulse" /></div>
               </div>
-              <h4 className="font-medium text-sm line-clamp-2 mb-2">{news.title}</h4>
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-muted-foreground">Impact:</span>
-                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className={cn(
-                      "h-full rounded-full",
-                      news.impactScore >= 80 ? "bg-accent" :
-                      news.impactScore >= 60 ? "bg-primary" :
-                      "bg-muted-foreground"
-                    )}
-                    style={{ width: `${news.impactScore}%` }}
-                  />
+            ))
+          ) : (
+            articles.slice(0, 3).map((news) => (
+              <div key={news.id} className="p-4 hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => window.open(news.url, '_blank')}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={cn(
+                    "text-xs font-medium px-2 py-0.5 rounded",
+                    news.sentiment === 'positive' ? "bg-primary/10 text-primary" :
+                    news.sentiment === 'negative' ? "bg-destructive/10 text-destructive" :
+                    "bg-muted text-muted-foreground"
+                  )}>
+                    {news.category}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{news.time}</span>
                 </div>
-                <span className="text-xs tabular-nums font-medium">{news.impactScore}</span>
+                <h4 className="font-medium text-sm line-clamp-2 mb-2">{news.title}</h4>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-muted-foreground">Impact:</span>
+                  <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className={cn(
+                        "h-full rounded-full",
+                        news.impactScore >= 80 ? "bg-accent" :
+                        news.impactScore >= 60 ? "bg-primary" :
+                        "bg-muted-foreground"
+                      )}
+                      style={{ width: `${news.impactScore}%` }}
+                    />
+                  </div>
+                  <span className="text-xs tabular-nums font-medium">{news.impactScore}</span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </motion.div>
     </motion.div>

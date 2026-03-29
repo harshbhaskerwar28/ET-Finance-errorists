@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -23,7 +23,7 @@ import {
   Info,
 } from "lucide-react"
 import { useAppStore } from "@/lib/store"
-import { mockStocks, mockNews } from "@/lib/mock-data"
+import { mockStocks } from "@/lib/mock-data"
 import {
   Area,
   AreaChart,
@@ -80,7 +80,26 @@ export function StockDetailView({ symbol, onBack }: StockDetailViewProps) {
   const isPositive = stock.change >= 0
   const chartData = generateChartData(isPositive ? "up" : "down", timeframe === "1W" ? 7 : timeframe === "1M" ? 30 : timeframe === "3M" ? 90 : timeframe === "1Y" ? 365 : 180)
 
-  const relatedNews = mockNews.filter((n) => n.relatedStocks?.includes(symbol)).slice(0, 3)
+  const [articles, setArticles] = useState<any[]>([])
+  const [loadingNews, setLoadingNews] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/news')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.articles) {
+          setArticles(data.articles)
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoadingNews(false))
+  }, [])
+
+  const relatedNews = articles.filter((n) => 
+    n.affectedStocks?.includes(symbol) || 
+    n.title.toLowerCase().includes(symbol.toLowerCase()) || 
+    n.summary.toLowerCase().includes(symbol.toLowerCase())
+  ).slice(0, 3)
 
   const fundamentals = {
     marketCap: "₹18.5L Cr",
@@ -421,11 +440,22 @@ export function StockDetailView({ symbol, onBack }: StockDetailViewProps) {
         </TabsContent>
 
         <TabsContent value="news" className="mt-6 space-y-4">
-          {relatedNews.length > 0 ? (
+          {loadingNews ? (
+             Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i} className="border-border/50 bg-card/50">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex gap-2"><div className="w-16 h-5 bg-muted rounded animate-pulse" /><div className="w-20 h-5 bg-muted rounded animate-pulse" /></div>
+                    <div className="w-full h-4 bg-muted rounded animate-pulse" />
+                    <div className="w-3/4 h-4 bg-muted rounded animate-pulse" />
+                  </CardContent>
+                </Card>
+             ))
+          ) : relatedNews.length > 0 ? (
             relatedNews.map((news) => (
               <Card
                 key={news.id}
                 className="border-border/50 bg-card/50 hover:bg-card/80 transition-colors cursor-pointer"
+                onClick={() => window.open(news.url, '_blank')}
               >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-4">

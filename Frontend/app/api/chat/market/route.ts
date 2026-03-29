@@ -181,14 +181,17 @@ export async function POST(req: Request) {
 
             const result = await runChatTool(tc.name, parsedArgs, userId)
 
-            // Extract chart from tool result
+            // Extract chart and references from tool result
             try {
               const parsed = JSON.parse(result)
               if (parsed.chart) {
                 allCharts.push(parsed.chart)
                 send({ type: 'chart', chart: parsed.chart })
               }
-            } catch { /* no chart */ }
+              if (parsed.references) {
+                send({ type: 'references', references: parsed.references })
+              }
+            } catch { /* no chart or references */ }
 
             allMessages.push({
               role: 'tool',

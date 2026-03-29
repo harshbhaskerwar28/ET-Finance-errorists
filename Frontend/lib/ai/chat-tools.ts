@@ -607,18 +607,20 @@ export async function runChatTool(
         const { query } = args
         if (!query) return JSON.stringify({ error: 'Query required' })
 
-        // Use DuckDuckGo instant answers (free, no API key)
         try {
-          const q = encodeURIComponent(`${query} site:economictimes.com OR site:livemint.com OR site:moneycontrol.com`)
           const res = await fetch(
             `https://api.duckduckgo.com/?q=${encodeURIComponent(query + ' India NSE stock market')}&format=json&no_redirect=1&no_html=1`,
             { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(5000) }
           )
           const data = await res.json()
           const topics = (data.RelatedTopics ?? [])
-            .filter((t: any) => t.Text)
+            .filter((t: any) => t.Text && t.FirstURL)
             .slice(0, 6)
-            .map((t: any) => ({ text: t.Text, url: t.FirstURL }))
+            .map((t: any) => ({
+              title: t.Text?.split(' - ')[0] || t.Text,
+              url: t.FirstURL,
+              source: 'DuckDuckGo News',
+            }))
 
           const abstract = data.Abstract ? { text: data.Abstract, source: data.AbstractSource } : null
 
@@ -626,6 +628,7 @@ export async function runChatTool(
             query,
             abstract,
             relatedTopics: topics,
+            references: topics, // UI expects this for dropdown cards
             searchNote: 'Results from DuckDuckGo instant search. For live news, check Economic Times or Moneycontrol.',
           })
         } catch {
@@ -648,9 +651,13 @@ export async function runChatTool(
           )
           const data = await res.json()
           const topics = (data.RelatedTopics ?? [])
-            .filter((t: any) => t.Text)
+            .filter((t: any) => t.Text && t.FirstURL)
             .slice(0, 8)
-            .map((t: any) => ({ text: t.Text, url: t.FirstURL }))
+            .map((t: any) => ({
+              title: t.Text?.split(' - ')[0] || t.Text,
+              url: t.FirstURL,
+              source: 'Web Search',
+            }))
 
           const abstract = data.Abstract ? { text: data.Abstract, source: data.AbstractSource, url: data.AbstractURL } : null
 
@@ -658,6 +665,7 @@ export async function runChatTool(
             query,
             abstract,
             relatedTopics: topics,
+            references: topics, // Add references for the nice UI card
             source: 'DuckDuckGo Web Search',
           })
         } catch {
