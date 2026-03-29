@@ -1,139 +1,115 @@
-# ET AI Investment Intelligence Platform
-### *Your Personal AI-Powered Financial Co-Pilot*
+# ET AI Finance: The Investment Intelligence Platform
+### *A Unified, AI-Powered Financial Ecosystem for the Modern Indian Investor*
 
 ---
 
-## 🌟 Product Vision
+## 🌟 Vision & Philosophy
+India’s retail investment landscape is exploding, yet most investors are "flying blind" — reacting to news cycles, missing critical technical triggers, and lacking a cohesive financial roadmap. **ET AI Finance** is a **Mission-Critical Intelligence Layer** that bridges the gap between raw market data and actionable wealth-creation decisions.
 
-India has 14 crore+ demat account holders — yet most invest on tips, miss critical filings, and have no financial plan. ET AI Investment Intelligence Platform is a unified, AI-native financial super-app that combines real-time market intelligence, personalized news, conversational financial advisory, and portfolio management into one seamless experience. It doesn't just inform — it acts, guides, and grows with you.
-
----
-
-## 👤 User Onboarding & Profile Engine
-
-### Smart Profiling Conversation
-When a user first opens the platform, an AI concierge initiates a friendly 3-minute conversation — not a form. It asks about investment experience, income range, financial goals, risk appetite, and life stage. From this single conversation, the entire platform personalizes itself — news feed, alerts, recommendations, and advisory tone all adapt instantly.
-
-### Investor Persona Detection
-Based on the onboarding conversation, users are automatically bucketed into personas — *Curious Beginner, Active Trader, SIP Investor, HNI, Retiree, NRI* — and the UI, language, and depth of content shifts accordingly. Personas evolve as behavior changes.
-
-### Returning User Memory
-Every time a user returns, the platform remembers previous queries, portfolio changes, life events mentioned, and unfinished action items — picking up exactly where they left off without repeating onboarding.
+**Our Core Difference:** 
+Unlike traditional platforms that prioritize broker commission through over-trading, we prioritize **Net Worth Growth** through **Portfolio-Aware Intelligence**. Every insight, alert, and advisor session is contextualized by what you already own and what you aim to achieve.
 
 ---
 
-## 📊 Market Intelligence
+## 🏗️ Technical Architecture
 
-### Opportunity Radar
-A real-time signal engine that continuously monitors NSE/BSE corporate filings, quarterly earnings, bulk/block deals, insider trades, management commentary, and regulatory announcements. Instead of dumping data, it scores each signal by relevance to the user's portfolio and surfaces only what matters — as clean, actionable daily alerts. It is a signal-finder, not a news summarizer.
+### 1. High-Level System Design
+```mermaid
+graph TD
+    User((User)) <--> Frontend[Next.js 14 App Router]
+    Frontend <--> Clerk[Identity & Behavioral Auth]
+    Frontend <--> API[Next.js Serverless Edge API]
+    API <--> LLM[Orchestration: GPT-4o & GPT-4o-mini]
+    API <--> DB[(Supabase PG + Real-time RLS)]
+    
+    subgraph "Intelligence Layer"
+        OnboardingAgent[Persona Extraction Agent]
+        PatternScanner[AI Technical Scanner]
+        PlanningEngine[Financial Health Engine]
+    end
+    
+    API <--> IntelligenceLayer
+    IntelligenceLayer <--> Sources[Yahoo Finance / NSE / MFAPI / ET News RSS]
+```
 
-### Chart Pattern Intelligence
-Scans the entire NSE universe in real time for technical patterns — breakouts, reversals, support/resistance zones, RSI divergences, golden crosses, and more. Each detected pattern comes with a plain-English explanation, a confidence score, and historical back-tested success rates for that specific pattern on that specific stock. Users get push alerts the moment a watchlisted stock triggers a high-confidence setup.
-
-### Sector & Macro Pulse
-A live dashboard that tracks sectoral momentum — which sectors are seeing FII inflows, which are under distribution, and how macro events like RBI policy, inflation prints, and global cues are rippling across industries. Automatically connects macro shifts to portfolio exposure.
-
-### Bulk & Block Deal Tracker
-Real-time tracking of institutional buying and selling with automatic tagging of which operator, fund, or promoter is involved — with historical context on whether their past trades were predictive of price movement.
-
----
-
-## 💬 Conversational Market Intelligence
-
-### Market ChatGPT — Next Gen
-A next-generation conversational AI that goes far beyond simple Q&A. Users can ask multi-step questions like *"Which mid-cap pharma stocks have insider buying and improving margins this quarter?"* — and get a synthesized, source-cited answer pulling from filings, technicals, and news simultaneously. It is portfolio-aware, meaning answers always reflect what the user holds. Conversation memory ensures follow-up questions build on context rather than starting fresh.
-
-### Voice Query Support
-Users can speak their queries in English or regional languages. The platform transcribes, interprets financial intent, and responds — making it accessible to investors who are more comfortable speaking than typing.
-
----
-
-## 📰 Personalized News & Content
-
-### My ET — Personalized Newsroom
-Every user gets a completely different homepage. A mutual fund investor sees portfolio NAV impact stories. A trader sees technical breakout news. A student sees explainer-first content. The feed is not just filtered — the layout, depth, format, and sequencing of stories all adapt to the user's persona and behavior. AI learns reading habits over time and continuously reshapes the experience.
-
-### Story Arc Tracker
-For any major ongoing business story — an IPO, a corporate fraud, a merger, a policy change — the platform builds a complete living narrative. Users get an interactive timeline of events, a map of key players, sentiment shifts tracked over time, and contrarian perspectives surfaced alongside the mainstream view. A *"What to Watch Next"* section predicts the next likely development. Every story automatically links to affected stocks in the user's portfolio.
-
-### News Impact Scorer
-Every news article is tagged with a *Portfolio Impact Score* — a measure of how directly it affects the user's holdings. High-impact stories are flagged prominently; irrelevant noise is deprioritized automatically.
-
-### Vernacular Business News Engine
-ET's English business news is translated in real time into Hindi, Tamil, Telugu, and Bengali — not literally, but with cultural adaptation and local financial context. A story about repo rate changes gets explained differently for a Tamil Nadu farmer versus a Delhi salaried professional. Voice-ready audio versions are generated for audio-first users in Tier 2/3 cities.
+### 2. The "Agentic" Core
+| Agent | Role | Technical Implementation |
+| :--- | :--- | :--- |
+| **Profiling Concierge** | Financial DNA Extraction | Uses `gpt-4o-mini` with a structured `PROFILE` schema extraction to bucket users into 6 distinct personas. |
+| **Market Pulse Agent** | Signal Interpretation | Monitors live quotes and volume surges to generate plain-English catalysts for technical breakouts. |
+| **Planning Advisor** | Holistic Strategy | Generates month-by-month "FIRE" roadmaps and "Money Health" audits across 4 critical dimensions. |
+| **News Intelligence** | Selective Curation | Filters the firehose of ET news to surface only what impacts your specific holdings and watchlist. |
 
 ---
 
-## 💰 Personal Finance Advisory
+## 🚀 Feature Ecosystem: In-Depth Breakdown
 
-### Money Health Score
-A 5-minute financial health assessment that scores users across 6 dimensions — emergency preparedness, insurance coverage, investment diversification, debt health, tax efficiency, and retirement readiness. Each dimension gets a score, a grade, and a prioritized action list. The score is not static — it updates dynamically as the user acts on recommendations or as market conditions change.
+### 1. Agentic Onboarding & Persona Engine
+*   **The Experience:** Replaces 40-field KYC forms with a friendly, sub-2-minute conversation. 
+*   **Persona Mapping:** Automatically identifies your archetype (*SIP Investor, Active Trader, HNI, Retiree, etc.*) and pivots the entire platform UI — from chart complexity to news tone — to match your expertise.
+*   **Structured Metadata:** Extracts goals (Experience, Horizon, Capacity) and saves them as persistent Supabase profiles for ongoing advisor context.
 
-### FIRE Path Planner
-User inputs age, income, monthly expenses, existing investments, and life goals. The AI builds a complete, month-by-month financial independence roadmap — SIP amounts per goal, asset allocation shifts over time, insurance gap analysis, tax-saving opportunities, and emergency fund milestones. The plan auto-adjusts when income changes, markets shift, or goals are updated.
+### 2. Opportunity Radar (AI Technical Scanning)
+*   **Pattern Intelligence:** Automated detection of "Golden Cross," "RSI Divergence," and "Triangle Breakouts" on over 50+ Top Indian Stocks.
+*   **AI Reasoning & Catalyst:** For every pattern, the AI provides a "Confidence Score" and a "Catalyst" (e.g., "Heavy institutional accumulation detected").
+*   **Confidence Circle:** A visual 0-100 score indicating the statistical reliability of the detected technical setup based on historical backtesting.
+*   **Interactive Price Map:** Visualizes AI-generated **Target Price** and **Stop Loss** levels directly on the interface.
 
-### Life Event Financial Advisor
-When a user experiences a major life event — salary hike, job loss, marriage, new baby, inheritance, home purchase — the platform detects it (through conversation or manual input) and triggers a dedicated advisory flow. The output is a one-page, personalized action plan with specific product recommendations, tax implications, and portfolio adjustments suited to that event.
+### 3. Financial Intelligence Hub (Planning & Health)
+*   **Money Health Score:** A 0-100 diagnostic across **Emergency Fund**, **Insurance Coverage**, **Debt Health**, and **Tax Efficiency**.
+*   **FIRE Roadmap:** A robust retirement simulation that calculates your **Target Corpus** and identifies the exact year inclusive of inflation and incremental SIP growth.
+*   **Life Event Advisor:** Specialized action plans for major milestones like "Home Purchase," "Wedding," "Education," or "Child Birth" with dedicated strategic to-do lists.
+*   **Tax Optimization Wizard:** Interactive comparison between Old vs. New Tax Regimes to determine the most efficient compliance path for your income level.
 
-### Couple's Money Planner
-Both partners input their financial data. The AI optimizes across both incomes — HRA claims, NPS matching, SIP splits for tax efficiency, joint vs. individual insurance, and a combined net worth tracker. Surfaces opportunities that are only visible when both financial pictures are seen together.
+### 4. Market Pulse & Watchlist
+*   **Unified Watchlist:** Add any NSE stock with one tap. Real-time price polling (2s frequency) keeps your eyes on the move.
+*   **Sector Heat Map:** A hierarchical treemap visualizing sector-wide strength (Banking, IT, FMCG, etc.) and deep-dive stock rankings within each sector.
+*   **Institutional Intelligence:** Tracks **Bulk & Block Deals** in real-time, highlighting where the "Smart Money" is flowing today.
 
----
-
-## 🧾 Tax & Compliance Tools
-
-### Tax Wizard
-User uploads Form 16 or inputs their salary structure. The AI identifies every deduction they are missing, models old vs. new tax regime with their exact numbers, and recommends tax-saving instruments ranked by risk profile and liquidity needs. Sends proactive reminders before 80C deadlines, advance tax dates, and ITR filing windows.
-
-### Capital Gains Tracker
-Automatically computes short-term and long-term capital gains from linked demat accounts across equity, mutual funds, and debt instruments. Generates a ready-to-use capital gains statement for ITR filing and flags tax-harvesting opportunities before the financial year closes.
-
----
-
-## 📂 Portfolio Management
-
-### Mutual Fund Portfolio X-Ray
-User uploads their CAMS or KFintech statement. In under 10 seconds the platform reconstructs their full MF portfolio, computes true XIRR, identifies scheme overlaps, calculates expense ratio drag versus category peers, benchmarks performance, and generates an AI rebalancing plan with specific switch recommendations.
-
-### Unified Portfolio Dashboard
-Aggregates equity, mutual funds, fixed deposits, PPF, gold, and real estate into one net worth view. Every asset class is benchmarked, and the overall portfolio gets an allocation health score. The dashboard highlights concentration risks, underperforming assets, and rebalancing opportunities proactively.
-
-### SIP Intelligence
-Tracks all active SIPs, calculates their projected corpus at retirement, models the impact of stepping up SIP amounts, and flags when a fund's performance has deteriorated enough to warrant a switch. Sends timely reminders for SIP top-ups and goal milestone reviews.
+### 5. Multi-Asset Portfolio Management
+*   **Consolidated Net Worth:** Live tracking of Stocks, Mutual Funds, Fixed Deposits, PPF, Gold (SGB/Physical), and Real Estate.
+*   **Portfolio Health:** Immediate visual feedback on asset allocation balance vs. your target persona.
+*   **Live Valuation:** Equity holdings are valued in real-time using live market feeds, providing an up-to-the-second view of your wealth status.
 
 ---
 
-## 🏪 Financial Services Marketplace
+## 🛠️ Technical Stack & Implementation
 
-### ET Services Concierge
-A conversational agent that acts as a concierge for financial products — credit cards, personal loans, home loans, term insurance, health insurance, and wealth management services — all available through ET's partner network. Recommendations are not generic — they are driven by the user's live financial profile, credit behavior, and portfolio situation. Users can apply or connect with advisors directly within the platform.
-
-### Smart Product Matching
-When a user's financial profile indicates a need — low insurance coverage, high idle cash, or an upcoming large expense — the platform proactively surfaces the most relevant financial product with a personalized pitch explaining why it fits their situation specifically.
-
----
-
-## 🔔 Alerts & Notifications Engine
-
-### Intelligent Alert System
-Users set alerts not just on price targets but on fundamental triggers — earnings beats, promoter pledge increases, credit rating changes, and dividend announcements. The platform also auto-generates alerts based on portfolio risk signals without the user needing to configure anything.
-
-### Daily Morning Brief
-Every morning, the user gets a personalized 2-minute brief — markets overnight, key events today, portfolio movers, and one actionable insight relevant to their holdings. Delivered via app notification, email, or WhatsApp based on preference.
-
-### Weekly Portfolio Report
-Auto-generated weekly summary of portfolio performance, news that impacted holdings, upcoming events for held stocks (results, AGMs, dividend ex-dates), and progress toward financial goals — all in one digest.
+*   **Frontend Framework:** Next.js 14 (App Router) with strict TypeScript.
+*   **UI System:** Vanilla CSS with Radix UI primitives and Tailwind for utility.
+*   **Animation:** Framer Motion for high-fidelity transitions (Persona reveal, Health score counters).
+*   **Intelligence:** Vercel AI SDK with OpenAI `gpt-4o` (Complex reasoning) and `gpt-4o-mini` (Fast classification).
+*   **State Management:** Zustand with LocalStorage persistence for multi-tab synchronization.
+*   **Database & API:** Supabase (PostgreSQL) with Real-time subscriptions for Alerts and Row Level Security (RLS).
+*   **Live Data Pipeline:** 
+    *   **Equity:** Yahoo Finance API (Polled at 2-5s intervals).
+    *   **Mutual Funds:** MFAPI.in for NAV data.
+    *   **News:** Economic Times RSS feed integration.
 
 ---
 
-## 🔗 Platform Pillars
+## 📊 Technical Deep-Dives
 
-**Unified Profile** — One onboarding conversation powers every feature. Every tool knows who you are.
+### How Signal Intelligence Works
+The platform doesn't just show price changes. It runs a background analysis:
+1. **Raw Feed:** Fetches OHLCV data from market hooks.
+2. **Technicals:** Calculates RSI, MACD, and SMA crossovers.
+3. **AI Layer:** GPT-4o parses the technical state + recent news context.
+4. **Insight:** Outputs a structured JSON containing a technical explanation, confidence score, and trade levels.
 
-**Portfolio-Aware Everywhere** — Every alert, article, recommendation, and advisory output is filtered through the user's actual holdings and goals.
+---
 
-**Action-First Design** — Every insight connects to a clear next step. No information dead ends.
+## 🚀 Setup & Installation
 
-**Vernacular & Voice** — Built for all of India's 14 crore+ demat account holders, not just English-speaking urban investors.
+1.  **Clone:** `git clone https://github.com/et-finance/platform.git`
+2.  **Environment:** Create `.env.local` with your `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `OPENAI_API_KEY`.
+3.  **Database:** Execute the SQL scripts in order: `schema.sql` (Tables), `triggers.sql` (Automations), `seed.sql` (Demo data).
+4.  **Launch:** `npm install && npm run dev`
 
-**Privacy & Security** — All financial data is encrypted, never sold, and users retain full control over what they share and connect.
+---
+
+## 🛡️ Reliability & Accuracy
+This platform is a prototype built for the ET Finance Hackathon. Financial data is fetched from public APIs and technical analysis is AI-synthesized. Always consult a certified financial advisor before making real-money decisions.
+
+---
+**Build for 1.4 Billion. Intelligent for One. ET AI Finance.**

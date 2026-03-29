@@ -1,0 +1,88 @@
+6 AI for the Indian Investor
+PROBLEM STATEMENT
+India has 14 crore+ demat accounts, but most retail investors are flying blind — reacting to tips, missing
+filings, unable to read technicals, and managing mutual fund portfolios on gut feel. ET Markets has the
+data. Build the intelligence layer that turns data into actionable, money-making decisions.
+WHAT YOU MAY BUILD
+• Opportunity Radar — AI that continuously monitors corporate filings, quarterly results, bulk/block
+deals, insider trades, management commentary shifts, and regulatory changes — surfacing
+missed opportunities as daily alerts. Not a summarizer — a signal-finder.
+• Chart Pattern Intelligence — Real-time technical pattern detection (breakouts, reversals,
+support/resistance, divergences) across the full National Stock Exchange (NSE) universe — with
+plain-English explanation and historical back-tested success rates for that pattern on that specific
+stock.
+• Market ChatGPT — Next Gen — ET already has a Market ChatGPT product. Your challenge:
+break it and rebuild it better. Deeper data integration, multi-step analysis, portfolio-aware answers,
+and source-cited responses.
+• AI Market Video Engine — Auto-generate short, visually rich market update videos (30–90
+seconds) from real-time data. Race-chart simulators, daily market wraps, sector rotations, Foreign
+Institutional Investor (FII) / Domestic Institutional Investor (DII) flow visualizations, Initial Public
+Offering (IPO) trackers — zero human editing required.
+7 AI Concierge for ET
+PROBLEM STATEMENT
+ET has a massive ecosystem — ET Prime, ET Markets, masterclasses, corporate events, wealth
+summits, and financial services partnerships. But most users discover only 10% of what ET offers. Build
+an AI concierge that understands who you are in one conversation and becomes your personal guide to
+everything ET can do for you.
+WHAT YOU MAY BUILD
+• ET Welcome Concierge — An AI voice or chat agent that greets every new or returning user
+with a smart 3-minute profiling conversation — then maps them to the right ET products and
+creates a personalized onboarding path.
+• Financial Life Navigator — Deep conversational AI that understands the user's complete
+financial life and guides them to the right ET tools and partner services — identifying portfolio
+gaps, financial goals, and immediate needs.
+• ET Ecosystem Cross-Sell Engine — AI that sits across all ET touchpoints and proactively
+identifies cross-sell and upsell opportunities based on user behavior and profile — reaching out at
+the right moment with the right offer.
+• ET Services Marketplace Agent — Conversational AI acting as a concierge for financial
+services — credit cards, loans, insurance, wealth management — offered through ET's
+partnerships.
+8 AI-Native News Experience
+PROBLEM STATEMENT
+Business news in 2026 is still delivered like it's 2005 — static text articles, one-size-fits-all homepage,
+same format for everyone. Build something that makes people say "I can't go back to reading news the
+old way."
+WHAT YOU MAY BUILD
+• My ET — The Personalized Newsroom — Not just a filtered feed — a fundamentally different
+news experience for every user. A mutual fund investor gets portfolio-relevant stories. A startup
+founder gets funding news and competitor moves. A student gets explainer-first content.
+• News Navigator — Interactive Intelligence Briefings — Instead of reading 8 separate articles
+about a Union Budget announcement, interact with a single AI-powered deep briefing that
+synthesizes all ET coverage into an explorable document with follow-up questions.
+• AI News Video Studio — Automatically transform any ET article or breaking news into a
+broadcast-quality short video (60–120 seconds) with AI-generated narration, animated data
+visuals, and contextual overlays.
+• Story Arc Tracker — Pick any ongoing business story and AI builds a complete visual narrative:
+interactive timeline, key players mapped, sentiment shifts tracked, contrarian perspectives
+surfaced, and "what to watch next" predictions.
+• Vernacular Business News Engine — Real-time, context-aware translation of ET's English
+business news into Hindi, Tamil, Telugu, Bengali — culturally adapted explanations with local
+context, not literal translation.
+9 AI Money Mentor
+PROBLEM STATEMENT
+95% of Indians don't have a financial plan. Financial advisors charge ₹25,000+ per year and serve only
+High Net-worth Individuals (HNIs). Build an AI-powered personal finance mentor that lives inside ET,
+turns confused savers into confident investors, and makes financial planning as accessible as checking
+WhatsApp.
+WHAT YOU MAY BUILD
+• Financial Independence, Retire Early (FIRE) Path Planner — User inputs age, income,
+expenses, existing investments, and life goals. AI builds a complete, month-by-month financial
+roadmap: Systematic Investment Plan (SIP) amounts per goal, asset allocation shifts, insurance
+gaps, tax-saving moves, and emergency fund targets.
+• Money Health Score — A 5-minute onboarding flow that gives a comprehensive financial
+wellness score across 6 dimensions: emergency preparedness, insurance coverage, investment
+diversification, debt health, tax efficiency, and retirement readiness.
+• Life Event Financial Advisor — AI advisor that handles specific life-event-triggered financial
+decisions — bonus, inheritance, marriage, new baby — customized to your tax bracket, portfolio,
+risk profile, and goals.
+• Tax Wizard — Upload Form 16 or input salary structure. AI identifies every deduction you're
+missing, models old vs. new tax regime with your specific numbers, and suggests tax-saving
+investments ranked by risk profile and liquidity needs.
+• Couple's Money Planner — India's first AI-powered joint financial planning tool. Both partners
+input their data. AI optimizes across both incomes — House Rent Allowance (HRA) claims,
+National Pension System (NPS) matching, Systematic Investment Plan (SIP) splits for tax
+efficiency, joint vs. individual insurance, combined net worth tracker.
+• Mutual Fund (MF) Portfolio X-Ray — Upload your Computer Age Management Services
+(CAMS) or KFintech statement and in under 10 seconds get: complete portfolio reconstruction,
+true Extended Internal Rate of Return (XIRR), overlap analysis, expense ratio drag, benchmark
+comparison, and AI-generated rebalancing plan
