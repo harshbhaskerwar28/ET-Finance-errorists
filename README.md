@@ -240,3 +240,226 @@ graph TD
 ```
 
 ---
+
+## 6. The Agentic AI Core — Detailed Agent Breakdown
+
+The platform transcends traditional CRUD functionality by implementing an autonomous, multi-agent framework powered by the Vercel AI SDK. Each agent serves a specialized role within the ecosystem.
+
+### 6.1 Profiling Concierge (GPT-4o-mini)
+- **Role:** Financial DNA Extraction.
+- **Function:** Replaces the traditional, intimidating KYC form with a conversational interface. 
+- **Methodology:** As the user answers conversational prompts, this agent runs in the background, utilizing structured output extraction. It classifies the user into predefined risk buckets, determines their investment horizon, and persists this JSON payload directly to the Supabase database.
+
+### 6.2 Market Pulse Scanner (GPT-4o)
+- **Role:** Signal Interpretation and Catalyst Generation.
+- **Function:** Monitors high-frequency price data for technical pattern breakouts (e.g., Moving Average Crossovers, RSI divergence). 
+- **Methodology:** When a mathematical trigger occurs, the mathematical data is passed to GPT-4o along with recent news headlines. The agent synthesizes a plain-English explanation of why the technical breakout is happening and assigns a Confidence Score based on historical backtesting context.
+
+### 6.3 Financial Planning Advisor
+- **Role:** Holistic Wealth Strategy.
+- **Function:** Generates month-by-month roadmaps for Retirement (FIRE) and audits the user's financial health across four critical dimensions (Debt, Insurance, Tax, Emergency Funds).
+- **Methodology:** Operates as a deterministic calculation engine combined with heuristic LLM advice. It provides explicit mathematical targets (e.g., "Increase SIP by Rs. 2,000") wrapped in personalized, empathetic guidance.
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1e293b', 'primaryTextColor': '#f1f5f9', 'primaryBorderColor': '#10b981', 'lineColor': '#10b981'}}}%%
+graph TD
+    USER_INPUT["User Prompt / Action"] --> ORCHESTRATOR["Agent Orchestrator (Vercel AI SDK)"]
+    
+    ORCHESTRATOR --> |"Requires Classification"| MINI["GPT-4o-mini (Fast)"]
+    ORCHESTRATOR --> |"Requires Reasoning"| GPT4O["GPT-4o (Complex)"]
+    
+    MINI --> |"Extract Profile"| DB_UPSERT["Update Persona State"]
+    GPT4O --> |"Analyze Market Event"| TOOL_CALL["Trigger External Tool Call"]
+    
+    style ORCHESTRATOR fill:#0f172a,stroke:#6366f1,color:#f1f5f9
+    style MINI fill:#10b981,stroke:#047857,color:#fff
+    style GPT4O fill:#f59e0b,stroke:#b45309,color:#fff
+```
+
+---
+
+## 7. Tool Calling System — Deep Dive
+
+The agents are not limited to text generation; they interact with the platform deterministically via Function Calling (Tool Calling). 
+
+Instead of relying on the LLM to guess market prices or hallucinate charts, the agents are provided with strict TypeScript APIs they must invoke to fetch ground truth data before generating an answer.
+
+### Implemented Tool Ecosystem:
+1. `get_live_price(ticker)`: Fetches real-time LTP from the Yahoo Finance API.
+2. `fetch_technical_indicators(ticker)`: Computes RSI, MACD, and SMA context on the edge.
+3. `search_et_news(query)`: Curates and summarizes relevant articles from the Economic Times RSS feed.
+4. `calculate_sip_returns(amount, years, rate)`: Deterministic compound interest calculator avoiding LLM math errors.
+5. `analyze_portfolio_allocation(user_id)`: Queries the Supabase DB to retrieve the user's current holdings before offering advice.
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1e293b', 'primaryTextColor': '#f1f5f9', 'primaryBorderColor': '#3b82f6', 'lineColor': '#3b82f6'}}}%%
+sequenceDiagram
+    participant User
+    participant App as Next.js App
+    participant AI as OpenAI API
+    participant Tools as Edge Functions
+
+    User->>App: "Is it a good time to buy HDFC Bank?"
+    App->>AI: Initial Prompt (Message History)
+    
+    Note over AI,Tools: AI realizes it needs current data
+    AI-->>App: ToolCall: get_live_price("HDFCBANK.NS")
+    App->>Tools: Execute fetch()
+    Tools-->>App: Return {"price": 1645.20, "trend": "bullish"}
+    
+    App->>AI: Submit ToolResult
+    AI-->>User: "HDFC is trading at 1645.20. Based on your SIP profile..."
+```
+
+---
+
+## 8. Feature-by-Feature Breakdown
+
+### 8.1 Agentic Onboarding
+Instead of a static 40-question form, users chat with an AI that dynamically extracts the `Persona` schema.
+- **Technical Flow:** `useChat` hook (Vercel AI) streams the conversation. A background routine uses `generateObject` with a Zod schema to silently parse the conversation state into database fields.
+
+### 8.2 Opportunity Radar (AI Technical Scanning)
+A reactive technical analysis engine that democratizes chart reading.
+- **Technical Flow:** A CRON job polls Top 50 Nifty stocks, calculating technical signals. Matches are sent to the AI Context Validator, which analyzes corresponding news volume and outputs a Confidence Score (0-100) and a plain-English catalyst.
+
+### 8.3 Financial Intelligence Hub
+Aggregates sub-metrics into a single "Money Health Score."
+- **Technical Flow:** Deterministic algorithms assess four vectors: Emergency Funds (vs. monthly expenses), Insurance Coverage (vs. dependents), Debt Health (DTI ratio), and Tax Efficiency (Old vs. New regime analyzer).
+
+### 8.4 Multi-Asset Portfolio Management
+Consolidated tracking of Equity, Mutual Funds, FDs, PPF, and Real Estate.
+- **Technical Flow:** User inputs holdings. Next.js edge functions continuously fetch live NAVs (MFAPI) and LTPs (Yahoo Finance) via parallelized promises, updating the Zustand client store to calculate real-time net worth.
+
+---
+
+## 9. Database Architecture
+
+The platform utilizes **Supabase (PostgreSQL)**, leveraging its real-time subscription capabilities and strict Row Level Security (RLS).
+
+### Core Schema Design
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1e293b', 'primaryTextColor': '#f1f5f9', 'primaryBorderColor': '#f59e0b', 'lineColor': '#f59e0b'}}}%%
+erDiagram
+    USERS ||--o{ USER_PERSONAS : "has one"
+    USERS ||--o{ PORTFOLIOS : "owns"
+    PORTFOLIOS ||--o{ ASSET_HOLDINGS : "contains"
+    USERS ||--o{ ALERT_PREFERENCES : "configures"
+
+    USERS {
+        uuid id PK
+        string email
+        timestamp last_login
+    }
+    USER_PERSONAS {
+        uuid user_id FK
+        string archetype "e.g., SIP Investor"
+        int risk_tolerance "1-10"
+        jsonb life_goals
+    }
+    ASSET_HOLDINGS {
+        uuid id PK
+        uuid portfolio_id FK
+        string asset_type "Equity, MF, Gold"
+        string ticker
+        float quantity
+        float buy_price
+    }
+```
+
+---
+
+## 10. State Management
+
+Handling high-frequency financial data alongside complex UI state (modals, active personas, chat history) requires a resilient architecture.
+- **Zustand:** Elected over Redux for its lightweight boilerplate and native async support. Client state is divided into slices: `usePortfolioStore`, `useMarketStore`, and `useUserStore`.
+- **SWR / React Query:** Utilized for data fetching that requires aggressive caching, revalidation on focus, and deduplication of identical requests (e.g., fetching the same stock price in three different UI components).
+
+---
+
+## 11. Data Pipeline Architecture
+
+The platform aggregates data from multiple disparate sources into a unified edge middleware layer before it hits the client.
+
+- **Yahoo Finance API (RapidAPI):** Primary engine for NSE/BSE delayed market quotes and historical candlestick OHLCV data.
+- **NSE Direct Public APIs:** Scraped for corporate announcements, bulk deals, and block deals to track institutional money flow.
+- **MFAPI.in:** Open-source API heavily utilized to fetch historical and current Net Asset Values (NAV) for Indian Mutual Funds.
+- **ET News RSS Feed:** Parsed on the server utilizing `rss-parser`. News is tokenized and matched against the user's specific portfolio holdings.
+
+---
+
+## 12. Security Architecture
+
+Financial platforms require zero-trust, iron-clad security modeling.
+
+1. **Authentication:** Managed entirely via Clerk. JWT tokens are verified in the Next.js middleware before any page render or API route execution.
+2. **Row Level Security (RLS):** Enabled on every Supabase table. Even if the Edge API is compromised, the database enforces policies ensuring `user_id == auth.uid()`.
+3. **Environment Separation:** API keys (OpenAI, Supabase Service Role) are strictly isolated to the server edge and are never leaked to the client bundle.
+4. **Input Sanitization:** All user inputs and AI tool outputs are rigorously validated against Zod schemas before database insertion.
+
+---
+
+## 13. Setup and Installation
+
+This section provides the blueprint for recreating this platform locally.
+
+### Prerequisites
+- Node.js (v18+)
+- Supabase Account (for PostgreSQL DB)
+- API Keys: Clerk (Auth), OpenAI (LLMs), RapidAPI (Market Data)
+
+### Step-by-Step Initialization
+
+1. **Clone the Repository:**
+   ```bash
+   git clone https://github.com/et-finance/platform.git
+   cd platform
+   ```
+
+2. **Environment Configuration:**
+   Create a `.env.local` file in the root directory and populate the following secrets:
+   ```env
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_***
+   CLERK_SECRET_KEY=sk_test_***
+   NEXT_PUBLIC_SUPABASE_URL=https://***.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ***
+   SUPABASE_SERVICE_ROLE_KEY=eyJ***
+   OPENAI_API_KEY=sk-***
+   RAPIDAPI_KEY=***
+   ```
+
+3. **Database Seeding:**
+   Navigate into the Supabase SQL editor and execute the schema files in the following sequence:
+   - `01_schema.sql` (Initializes Tables and RLS policies)
+   - `02_triggers.sql` (Initializes user synchronization with Clerk webhooks)
+   - `03_seed_data.sql` (Populates initial mock data for testing)
+
+4. **Install Dependencies and Launch:**
+   ```bash
+   npm install
+   npm run dev
+   ```
+   The application will be accessible at `http://localhost:3000`.
+
+---
+
+## 14. Business Impact and Innovation
+
+By shifting the focal point from transaction volume (broker model) to holistic long-term wealth management (advisory model), this platform redefines user engagement.
+
+- **Increased Lifetime Value (LTV):** Users who possess a structured financial roadmap exhibit significantly lower churn rates.
+- **Elimination of Analysis Paralysis:** By translating complex technical data into plain-English conversational intelligence, the platform converts passive observers into active, confident investors.
+- **Consolidation of the Ecosystem:** It acts as a primary funnel, intelligently cross-selling ET Prime subscriptions, Masterclasses, and direct broker partnerships by contextualizing them against the user's explicit goals.
+
+---
+
+## 15. What Great Submissions Include — How This Platform Delivers
+
+- **Technical Depth & Architecture:** A highly complex, distributed serverless architecture seamlessly integrating state-of-the-art multi-agent LLM orchestration, strict tool-calling, and real-time database synchronization via WebSockets, all secured behind robust middleware.
+- **Real Business Impact:** Directly addresses the financial literacy gap for 14 crore Indian investors, providing institutional-grade tools to retail users, fostering better capital allocation, and creating a highly retentive, value-driven product loop.
+- **Innovation:** Pioneers "Agentic Onboarding" over static forms and replaces intimidating, complex charts with an interpretative, AI-driven "Opportunity Radar" that explains the *why* behind the price action.
+- **Live Demo:** Fully built, styled, and functional end-to-end prototype deployed on edge infrastructure.
+
+---
+*Architected for the Economic Times Finance Hackathon. Empowering the modern Indian investor.*
