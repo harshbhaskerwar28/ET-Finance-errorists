@@ -732,8 +732,9 @@ export function PortfolioView() {
                       )}
                     </AnimatePresence>
                   </motion.div>
-                ))}
-              </div>
+                )
+              })}
+            </div>
             )}
           </motion.div>
         )}
